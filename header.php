@@ -1,6 +1,4 @@
-<?php
-require_login();
-$appBase = strpos($_SERVER['SCRIPT_NAME'] ?? '', '/pages/') !== false ? '../' : '';
-?>
-<!doctype html><html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title><?=e($pageTitle ?? 'Dashboard')?> · Madrasah Wihdatul Muslimat</title><link rel="stylesheet" href="<?=$appBase?>assets/css/style.css"></head><body>
-<div class="app-shell"><?php require __DIR__.'/includes/sidebar.php';?><main class="main"><header class="topbar"><div><span class="eyebrow">SISTEM ADMINISTRASI</span><b><?=e($pageTitle ?? 'Dashboard')?></b></div><div class="admin-chip">Admin: <?=e($_SESSION['admin_name'] ?? 'Administrator')?></div></header><section class="content">
+<?php require_login(); ?>
+<!doctype html><html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title><?=e($pageTitle ?? 'Dashboard')?> · Madrasah Wihdatul Muslimat</title><link rel="stylesheet" href="style.css"></head><body>
+<div class="app-shell"><aside class="sidebar"><div class="side-brand"><div class="brand-mark small">م</div><div><b>Madrasah Diniyah</b><small>Wihdatul Muslimat</small></div></div><nav>
+<a href="index.php">▦ Dashboard</a><a href="siswa.php">♙ Data Siswa</a><a href="siswa_form.php">＋ Tambah Siswa</a><a href="logout.php">↪ Keluar</a></nav><div class="side-foot">Menteng · Jakarta Pusat</div></aside><main class="main"><header class="topbar"><div><span class="eyebrow">SISTEM ADMINISTRASI</span><b><?=e($pageTitle ?? 'Dashboard')?></b></div><div class="admin-chip">Admin: <?=e($_SESSION['admin_name'] ?? 'Administrator')?></div></header><section class="content">

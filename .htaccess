@@ -1,5 +1,5 @@
 Options -Indexes
-<FilesMatch "^(config\.php|functions\.php|header\.php|footer\.php)$">
+<FilesMatch "^(config\.php|functions\.php|install\.php)$">
     Require all denied
 </FilesMatch>
 <IfModule mod_headers.c>

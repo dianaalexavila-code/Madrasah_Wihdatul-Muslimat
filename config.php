@@ -13,12 +13,6 @@ define('UPLOAD_DIR', __DIR__ . '/uploads/foto_siswa/');
 define('MAX_UPLOAD_BYTES', 2 * 1024 * 1024);
 
 if (session_status() !== PHP_SESSION_ACTIVE) {
-    ini_set('session.use_strict_mode', '1');
-    session_set_cookie_params([
-        'httponly' => true,
-        'secure' => !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off',
-        'samesite' => 'Lax'
-    ]);
     session_start();
 }
 try {

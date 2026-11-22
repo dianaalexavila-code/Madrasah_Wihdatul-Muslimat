@@ -13,7 +13,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         session_regenerate_id(true);
         $_SESSION['admin_id'] = $admin['id'];
         $_SESSION['admin_name'] = $admin['name'];
-        $_SESSION['admin_role'] = $admin['role'] ?? 'admin';
         header('Location: index.php'); exit;
     }
     $error = 'Email atau kata sandi tidak sesuai.';

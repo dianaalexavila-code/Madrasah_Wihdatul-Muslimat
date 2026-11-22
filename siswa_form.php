@@ -2,7 +2,6 @@
 require __DIR__ . '/config.php'; require __DIR__ . '/functions.php'; require_login();
 $id=(int)($_GET['id']??0);$data=[];$isEdit=false;
 if($id){$s=$pdo->prepare('SELECT * FROM students WHERE id=?');$s->execute([$id]);$data=$s->fetch()?:[];if(!$data){http_response_code(404);exit('Data siswa tidak ditemukan.');}$isEdit=true;}
-if(!$isEdit){$prefix='WM'.date('Y');$next=$pdo->prepare("SELECT COALESCE(MAX(CAST(SUBSTRING_INDEX(nomor_induk,'-',-1) AS UNSIGNED)),0)+1 FROM students WHERE nomor_induk LIKE ?");$next->execute([$prefix.'-%']);$data['nomor_induk']=$prefix.'-'.str_pad((string)$next->fetchColumn(),4,'0',STR_PAD_LEFT);}
 $pageTitle=$isEdit?'Edit Data Siswa':'Tambah Data Siswa';
 $fields=[
 'Identitas Siswa'=>[
@@ -20,24 +19,21 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
  if($v['nomor_induk']===''||$v['nama_lengkap']===''||!in_array($v['jenis_kelamin'],['Laki-laki','Perempuan'],true)||!in_array((int)$v['kelas'],range(1,6),true)){$error='Lengkapi Nomor Induk, Nama, Jenis Kelamin, dan Kelas dengan benar.';}
  foreach(['nik','nik_ayah','nik_ibu'] as $key){if($v[$key]!==''&&!preg_match('/^\d{16}$/',$v[$key]))$error='NIK harus terdiri dari 16 digit angka.';}
  if(!$error){
-  if($v['tahun_masuk']==='')$v['tahun_masuk']=null;
-  $photo=null;$oldPhoto=$data['foto']??null;
   try{
-   $photo=save_student_photo($_FILES['foto']??[], $oldPhoto);
+   $old=$data['foto']??null;$photo=save_student_photo($_FILES['foto']??[], $old);
    $cols=array_keys($v);$vals=array_values($v);$vals[]=$photo;
    if($isEdit){$sets=implode(',',array_map(fn($c)=>"$c=?",array_merge($cols,['foto'])));$vals[]=$id;$stmt=$pdo->prepare("UPDATE students SET $sets WHERE id=?");$stmt->execute($vals);}
    else{$colstr=implode(',',array_merge($cols,['foto']));$marks=implode(',',array_fill(0,count($cols)+1,'?'));$stmt=$pdo->prepare("INSERT INTO students($colstr) VALUES($marks)");$stmt->execute($vals);}
-   if($oldPhoto&&$photo!==$oldPhoto&&is_file(UPLOAD_DIR.basename($oldPhoto)))unlink(UPLOAD_DIR.basename($oldPhoto));
    redirect_with($isEdit?'Data siswa berhasil diperbarui.':'Data siswa berhasil disimpan.');
-  }catch(Throwable $e){if($photo&&$photo!==$oldPhoto&&is_file(UPLOAD_DIR.basename($photo)))unlink(UPLOAD_DIR.basename($photo));$error=$e instanceof PDOException?'Nomor Induk mungkin sudah digunakan. Periksa kembali.':$e->getMessage();}
+  }catch(Throwable $e){$error=$e instanceof PDOException?'Nomor Induk mungkin sudah digunakan. Periksa kembali.':$e->getMessage();}
  }
 }
 require __DIR__ . '/header.php';
 ?>
-<div class="page-actions"><div><h1><?=$isEdit?'Edit':'Tambah'?> Data Siswa</h1><p>Kolom bertanda * wajib diisi. Nomor induk disiapkan otomatis, umur dihitung dari tanggal lahir.</p></div><a class="btn soft" href="siswa.php">← Kembali</a></div>
+<div class="page-actions"><div><h1><?=$isEdit?'Edit':'Tambah'?> Data Siswa</h1><p>Kolom bertanda * wajib diisi. Umur dihitung otomatis dari tanggal lahir.</p></div><a class="btn soft" href="siswa.php">← Kembali</a></div>
 <?php if($error):?><div class="alert error"><?=e($error)?></div><?php endif;?>
 <form method="post" enctype="multipart/form-data"><input type="hidden" name="csrf" value="<?=e(csrf_token())?>">
-<div class="panel photo-panel"><div><?php if(!empty($data['foto'])):?><img class="photo-preview" src="uploads/foto_siswa/<?=e($data['foto'])?>" alt="Foto saat ini"><?php else:?><div class="photo-preview placeholder">FOTO</div><?php endif;?></div><div><h2>Foto Siswa</h2><p>Unggah foto formal JPG, PNG, atau WEBP. Maksimal 2 MB.</p><input type="file" name="foto" accept="image/jpeg,image/png,image/webp"><p id="student-age">Umur akan dihitung setelah tanggal lahir diisi.</p></div></div>
+<div class="panel photo-panel"><div><?php if(!empty($data['foto'])):?><img class="photo-preview" src="uploads/foto_siswa/<?=e($data['foto'])?>" alt="Foto saat ini"><?php else:?><div class="photo-preview placeholder">FOTO</div><?php endif;?></div><div><h2>Foto Siswa</h2><p>Unggah foto formal JPG, PNG, atau WEBP. Maksimal 2 MB.</p><input type="file" name="foto" accept="image/jpeg,image/png,image/webp"></div></div>
 <?php foreach($fields as $section=>$items):?><div class="panel form-panel"><h2><?=e($section)?></h2><div class="form-grid"><?php foreach($items as [$key,$label,$type]):?><div class="field <?=$type==='textarea'?'wide':''?>"><label for="<?=e($key)?>"><?=e($label)?></label>
 <?php if($type==='textarea'):?><textarea id="<?=e($key)?>" name="<?=e($key)?>" rows="3"><?=e($data[$key]??$_POST[$key]??'')?></textarea>
 <?php elseif($type==='select'):?><select id="<?=$key?>" name="<?=$key?>" required><option value="">Pilih</option><?php foreach(['Laki-laki','Perempuan'] as $op):?><option <?=$op===($data[$key]??$_POST[$key]??'')?'selected':''?>><?=$op?></option><?php endforeach;?></select>

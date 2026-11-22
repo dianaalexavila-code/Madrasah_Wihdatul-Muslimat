@@ -6,8 +6,7 @@ function e(?string $value): string {
 }
 function require_login(): void {
     if (empty($_SESSION['admin_id'])) {
-        $loginUrl = strpos($_SERVER['SCRIPT_NAME'] ?? '', '/pages/') !== false ? '../login.php' : 'login.php';
-        header('Location: ' . $loginUrl);
+        header('Location: login.php');
         exit;
     }
 }
@@ -31,16 +30,10 @@ function age_from_date(?string $date): string {
         return (string)$birth->diff(new DateTime('today'))->y . ' tahun';
     } catch (Throwable $e) { return '-'; }
 }
-function redirect_with(string $message, string $type = 'success'): void {
+function redirect_with(string $message, string $type = 'success'): never {
     $_SESSION['flash'] = ['message' => $message, 'type' => $type];
     header('Location: siswa.php');
     exit;
-}
-function require_admin(): void {
-    if (($_SESSION['admin_role'] ?? '') !== 'admin') {
-        http_response_code(403);
-        exit('Akses ini hanya tersedia untuk administrator.');
-    }
 }
 function save_student_photo(array $file, ?string $old = null): ?string {
     if (($file['error'] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_NO_FILE) return $old;
@@ -59,18 +52,6 @@ function save_student_photo(array $file, ?string $old = null): ?string {
     if (!move_uploaded_file($file['tmp_name'], UPLOAD_DIR . $name)) {
         throw new RuntimeException('Tidak dapat menyimpan foto.');
     }
-    return $name;
-}
-function save_module_photo(array $file, ?string $old = null): ?string {
-    if (($file['error'] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_NO_FILE) return $old;
-    if (($file['error'] ?? UPLOAD_ERR_OK) !== UPLOAD_ERR_OK) throw new RuntimeException('Unggahan foto gagal.');
-    if (($file['size'] ?? 0) > MAX_UPLOAD_BYTES) throw new RuntimeException('Ukuran foto maksimal 2 MB.');
-    $mime = (new finfo(FILEINFO_MIME_TYPE))->file($file['tmp_name']);
-    $allowed = ['image/jpeg'=>'jpg','image/png'=>'png','image/webp'=>'webp'];
-    if (!isset($allowed[$mime])) throw new RuntimeException('Foto harus JPG, PNG, atau WEBP.');
-    $directory = __DIR__ . '/uploads/dokumen/';
-    if (!is_dir($directory) && !mkdir($directory, 0750, true) && !is_dir($directory)) throw new RuntimeException('Folder unggahan tidak dapat dibuat.');
-    $name = bin2hex(random_bytes(16)) . '.' . $allowed[$mime];
-    if (!move_uploaded_file($file['tmp_name'], $directory . $name)) throw new RuntimeException('Tidak dapat menyimpan foto.');
+    if ($old && is_file(UPLOAD_DIR . basename($old))) @unlink(UPLOAD_DIR . basename($old));
     return $name;
 }

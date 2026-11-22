@@ -1,0 +1,10 @@
+<?php
+require dirname(__DIR__).'/config.php'; require dirname(__DIR__).'/functions.php'; require_login();
+$id=(int)($_GET['id']??0); $stmt=$pdo->prepare('SELECT * FROM students WHERE id=?'); $stmt->execute([$id]); $student=$stmt->fetch();
+if(!$student){http_response_code(404);exit('Data siswa tidak ditemukan.');}
+$pageTitle='Profil Siswa'; require dirname(__DIR__).'/header.php';
+?>
+<div class="page-actions"><div><h1>Profil Siswa</h1><p>Data NIK ditampilkan tersamarkan untuk menjaga privasi.</p></div><a class="btn soft" href="siswa.php">Kembali</a></div>
+<div class="panel photo-panel"><?php if($student['foto']):?><img class="photo-preview" src="../uploads/foto_siswa/<?=e($student['foto'])?>" alt="Foto siswa"><?php else:?><div class="photo-preview placeholder">FOTO</div><?php endif;?><div><h2><?=e($student['nama_lengkap'])?></h2><p><?=e($student['nomor_induk'])?> · Kelas <?=e((string)$student['kelas'])?> · <?=e($student['status'])?></p><a class="btn primary" href="../kartu.php?id=<?=$id?>" target="_blank">Cetak kartu</a></div></div>
+<?php foreach(['Identitas'=>['nisn'=>'NISN','nik'=>'NIK','tempat_lahir'=>'Tempat lahir','tanggal_lahir'=>'Tanggal lahir','jenis_kelamin'=>'Jenis kelamin','alamat'=>'Alamat','rt_rw'=>'RT/RW','kelurahan'=>'Kelurahan','kecamatan'=>'Kecamatan','kota'=>'Kota','tahun_masuk'=>'Tahun masuk'],'Orang tua & wali'=>['nama_ayah'=>'Nama ayah','nik_ayah'=>'NIK ayah','pekerjaan_ayah'=>'Pekerjaan ayah','telepon_ayah'=>'Telepon ayah','nama_ibu'=>'Nama ibu','nik_ibu'=>'NIK ibu','pekerjaan_ibu'=>'Pekerjaan ibu','telepon_ibu'=>'Telepon ibu','nama_wali'=>'Nama wali','hubungan_wali'=>'Hubungan wali','telepon_wali'=>'Telepon wali','alamat_wali'=>'Alamat wali']] as $section=>$items):?><div class="panel"><h2><?=e($section)?></h2><div class="form-grid"><?php foreach($items as $key=>$label):$value=(string)($student[$key]??'');if(str_starts_with($key,'nik')&&$value!=='')$value='••••••••••••'.substr($value,-4);?><div><small class="eyebrow"><?=e($label)?></small><p><?=e($value?:'—')?></p></div><?php endforeach;?></div></div><?php endforeach;?>
+<?php require dirname(__DIR__).'/footer.php'; ?>
